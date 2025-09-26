@@ -6,20 +6,27 @@ import {
   getFirestore, collection, addDoc, doc, setDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, updateDoc, enableIndexedDbPersistence
 } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js>";
 
-/* 1) Paste your Firebase config here */
+// Optional analytics (commented out; enable if needed on HTTPS/localhost)
+// import { getAnalytics, isSupported } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js>";
+
+/* 1) Your Firebase config (pasted) */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDJNl8F10gFc7GaL1jvumTu9sr3Snds22w",
+  authDomain: "pos---northern-thai-restaurant.firebaseapp.com",
+  projectId: "pos---northern-thai-restaurant",
+  storageBucket: "pos---northern-thai-restaurant.firebasestorage.app",
+  messagingSenderId: "330584001881",
+  appId: "1:330584001881:web:a8e80269de0b8b24105048",
+  measurementId: "G-4QZJ6GEFL4"
 };
 
 /* 2) Initialize Firebase */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Optional analytics init
+// if (await isSupported()) { getAnalytics(app); }
 
 // Offline cache (optional)
 enableIndexedDbPersistence(db).catch(() => { /* ignore if multiple tabs */ });
