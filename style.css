@@ -1,0 +1,272 @@
+:root{
+  --bg:#f6f7fb;
+  --panel:#ffffff;
+  --border:#e5e7eb;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --primary:#2563eb;
+  --primary-600:#1d4ed8;
+  --secondary:#f3f4f6;
+  --accent:#10b981;
+  --danger:#ef4444;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background:var(--bg);
+  color:var(--text);
+}
+
+.pos-container{
+  display:grid;
+  grid-template-columns:280px 1fr 380px;
+  gap:0;
+  height:100vh;
+}
+
+/* Sidebar */
+.sidebar{
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:20px 16px;
+  display:flex;
+  flex-direction:column;
+  overflow:auto;
+}
+.sidebar h2{
+  margin:0 0 16px;
+  font-size:20px;
+  font-weight:700;
+}
+.category-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.category-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#fff;
+  cursor:pointer;
+  transition:all .15s ease;
+  user-select:none;
+}
+.category-item:hover{border-color:#cfd3da; transform:translateY(-1px)}
+.category-item.active{
+  border-color:var(--primary);
+  box-shadow:0 0 0 2px rgba(37,99,235,.12) inset;
+  background:#f8fbff;
+}
+.category-emoji{font-size:20px}
+.sidebar-footer{
+  margin-top:auto;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* Menu grid */
+.menu-grid{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg);
+}
+.menu-header{
+  position:sticky;
+  top:0;
+  background:var(--bg);
+  z-index:5;
+  padding:18px 20px;
+  border-bottom:1px solid var(--border);
+}
+.menu-header h1{
+  margin:0;
+  font-size:22px;
+  font-weight:700;
+}
+.menu-category-note{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:13px;
+}
+.menu-items-container{
+  padding:16px;
+  overflow:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+  gap:14px;
+}
+.menu-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.menu-card:hover{transform:translateY(-2px); box-shadow:0 8px 16px rgba(0,0,0,.06)}
+.menu-title{font-size:14px; font-weight:600; margin:0}
+.menu-desc{font-size:12px; color:var(--muted); line-height:1.4; min-height:34px}
+.menu-price{color:var(--muted); font-size:13px}
+.menu-card button{
+  margin-top:auto;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--primary);
+  background:var(--primary);
+  color:#fff;
+  cursor:pointer;
+  font-weight:600;
+  transition:background .12s ease, transform .12s ease;
+}
+.menu-card button:hover{background:var(--primary-600); transform:translateY(-1px)}
+.menu-card button.btn-set-price{
+  background:#f59e0b;
+  border-color:#f59e0b;
+}
+.menu-card button.btn-set-price:hover{filter:brightness(.98)}
+
+/* Cart / Order Summary */
+.order-summary{
+  background:var(--panel);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.order-summary h2{
+  margin:18px 16px 8px;
+  font-size:18px;
+  font-weight:700;
+}
+.cart-items-list{
+  flex:1;
+  overflow:auto;
+  padding:0 16px 8px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.cart-empty-message{
+  border:1px dashed var(--border);
+  border-radius:10px;
+  padding:16px;
+  text-align:center;
+  color:var(--muted);
+  background:#fafafa;
+}
+.cart-row{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap:8px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  align-items:center;
+  background:#fff;
+}
+.cart-row-main{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.cart-name{font-weight:600; font-size:14px; margin:0}
+.cart-meta{font-size:12px; color:var(--muted)}
+.cart-row-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.qty-control{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:4px;
+  background:#f9fafb;
+}
+.qty-btn{
+  width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+  transition:background .12s ease;
+  font-weight:700;
+  line-height:1;
+}
+.qty-btn:hover{background:#f3f4f6}
+.qty-value{min-width:22px; text-align:center; font-weight:600}
+.line-total{font-weight:700; min-width:72px; text-align:right}
+.remove-btn{
+  border:none;
+  background:#fff;
+  color:var(--danger);
+  cursor:pointer;
+  padding:6px 8px;
+  border-radius:6px;
+  font-weight:600;
+}
+.remove-btn:hover{background:#fff5f5}
+
+.order-total{
+  border-top:1px solid var(--border);
+  padding:12px 16px 0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.total-row{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:14px;
+}
+.grand-total{font-weight:800; font-size:16px}
+.order-actions{
+  padding:12px 16px 16px;
+  display:flex; gap:10px;
+}
+.btn{
+  flex:1;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+  font-weight:700;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover{transform:translateY(-1px); box-shadow:0 8px 16px rgba(0,0,0,.06)}
+.btn-primary{
+  background:var(--accent);
+  border-color:transparent;
+  color:#fff;
+}
+.btn-primary:hover{filter:brightness(.98)}
+.btn-secondary{background:#f3f4f6}
+.btn:disabled{opacity:.6; cursor:not-allowed; transform:none; box-shadow:none}
+
+/* Responsive */
+@media (max-width: 1100px){
+  .pos-container{grid-template-columns:240px 1fr 340px}
+}
+@media (max-width: 900px){
+  .pos-container{grid-template-columns:1fr}
+  .sidebar{order:1; height:auto}
+  .menu-grid{order:2; height:50vh}
+  .order-summary{order:3; height:auto}
+}
