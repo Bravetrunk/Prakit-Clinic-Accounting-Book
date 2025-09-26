@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Seed Menu</title>
+</head>
+<body>
+  <h1>Seeding menu to Firestore…</h1>
+  <pre id="log"></pre>
+
+  <script type="module">
+    import { initializeApp } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js>";
+    import { getFirestore, doc, setDoc } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js>";
+    import { getAuth, signInAnonymously } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js>";
+
+    // 1) Paste your config here
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    await signInAnonymously(auth);
+
+    const logEl = document.getElementById("log");
+    const log = (msg) => { logEl.textContent += msg + "\\n"; console.log(msg); };
+
+    const MENU = [
+      // Small Plates
+      { name: "Sai Ua", category: "Small Plates", price: 160, description: "Chiang Mai herb pork sausage, grilled", spicyLevel: 1, veg: false },
+      { name: "Naem Kluay Tod", category: "Small Plates", price: 140, description: "Crispy fermented pork fritters", spicyLevel: 1, veg: false },
+      { name: "Khaep Mu", category: "Small Plates", price: 90, description: "Pork cracklings with green chili dip", spicyLevel: 2, veg: false },
+      { name: "Miang Kum Lanna", category: "Small Plates", price: 120, description: "Betel leaves, toasted coconut, palm sugar–tamarind sauce", spicyLevel: 0, veg: true },
+      { name: "Thua Plu Tod", category: "Small Plates", price: 110, description: "Crispy winged beans, tamarind-chili dust", spicyLevel: 1, veg: true },
+
+      // Dips
+      { name: "Nam Prik Noom", category: "Dips & Relishes", price: 95, description: "Roasted green chili relish", spicyLevel: 3, veg: true },
+      { name: "Nam Prik Ong", category: "Dips & Relishes", price: 105, description: "Tomato–minced pork relish", spicyLevel: 1, veg: false },
+      { name: "Nam Prik Makua", category: "Dips & Relishes", price: 95, description: "Roasted eggplant relish", spicyLevel: 1, veg: true },
+
+      // Salads
+      { name: "Larb Lanna", category: "Salads", price: 150, description: "Warm-spiced laab (pork or mushroom)", spicyLevel: 2, veg: true },
+      { name: "Yum Jin Som", category: "Salads", price: 140, description: "Tangy sour pork salad", spicyLevel: 1, veg: false },
+      { name: "Som Tam Muang", category: "Salads", price: 120, description: "Green mango salad", spicyLevel: 2, veg: true },
+
+      // Soups
+      { name: "Gaeng Khae", category: "Soups", price: 140, description: "Herb-forward vegetable soup", spicyLevel: 2, veg: true },
+      { name: "Tom Saeb Lanna", category: "Soups", price: 150, description: "Clear pork rib soup w/ makhwaen", spicyLevel: 2, veg: false },
+      { name: "Kaeng Om Gai", category: "Soups", price: 150, description: "Rustic chicken herb soup", spicyLevel: 2, veg: false },
+
+      // Curries & Mains
+      { name: "Gaeng Hung Lay", category: "Curries & Mains", price: 220, description: "Northern pork belly curry (no coconut)", spicyLevel: 1, veg: false },
+      { name: "Kaeng Khanun", category: "Curries & Mains", price: 160, description: "Young jackfruit curry", spicyLevel: 2, veg: true },
+      { name: "Kaeng Hoh", category: "Curries & Mains", price: 180, description: "Wok-tossed mixed curry", spicyLevel: 2, veg: false },
+      { name: "Jin Som Pad Kai", category: "Curries & Mains", price: 160, description: "Stir-fried sour pork with egg", spicyLevel: 1, veg: false },
+      { name: "Hor Mok Northern", category: "Curries & Mains", price: 180, description: "Steamed fish curry custard", spicyLevel: 1, veg: false },
+
+      // Grilled & Fried
+      { name: "Gai Yang Khamin", category: "Grilled & Fried", price: 180, description: "Turmeric-herb grilled chicken", spicyLevel: 1, veg: false },
+      { name: "Pla Pao Samunprai", category: "Grilled & Fried", price: 320, description: "Whole grilled fish, herbs", spicyLevel: 1, veg: false },
+      { name: "Moo Ping Lanna", category: "Grilled & Fried", price: 140, description: "Grilled pork skewers", spicyLevel: 0, veg: false },
+      { name: "Tofu Laab Tod", category: "Grilled & Fried", price: 130, description: "Laab-spiced crispy tofu", spicyLevel: 2, veg: true },
+
+      // Noodles & Rice
+      { name: "Khao Soi Gai", category: "Noodles & Rice", price: 160, description: "Curry noodle soup (chicken)", spicyLevel: 2, veg: false },
+      { name: "Khao Soi Hed", category: "Noodles & Rice", price: 150, description: "Curry noodle soup (mushroom)", spicyLevel: 2, veg: true },
+      { name: "Kuay Tiao Nam Ngiao", category: "Noodles & Rice", price: 150, description: "Shan-style tomato–pork noodle soup", spicyLevel: 2, veg: false },
+      { name: "Khao Niao (Sticky Rice)", category: "Noodles & Rice", price: 30, description: "Sticky rice", spicyLevel: 0, veg: true },
+      { name: "Khao Niao Nam Prik Set", category: "Noodles & Rice", price: 120, description: "Sticky rice + relish set", spicyLevel: 2, veg: true },
+
+      // Vegetables & Sides
+      { name: "Pickled Mustard Greens", category: "Vegetables & Sides", price: 90, description: "Stir-fried pak kad dong", spicyLevel: 1, veg: true },
+      { name: "Fiddlehead Ferns", category: "Vegetables & Sides", price: 110, description: "Chili garlic stir-fry", spicyLevel: 1, veg: true },
+      { name: "Grilled Long Eggplant", category: "Vegetables & Sides", price: 110, description: "Scallion oil, chili, lime", spicyLevel: 1, veg: true },
+      { name: "Steamed Seasonal Greens", category: "Vegetables & Sides", price: 90, description: "With roasted chili–lime dip", spicyLevel: 1, veg: true },
+
+      // Desserts
+      { name: "Khao Lam", category: "Desserts", price: 85, description: "Sticky rice roasted in bamboo", spicyLevel: 0, veg: true },
+      { name: "Black Sticky Rice Pudding", category: "Desserts", price: 85, description: "Palm sugar, toasted coconut", spicyLevel: 0, veg: true },
+      { name: "Khanom Tuay", category: "Desserts", price: 70, description: "Pandan-coconut custard cups", spicyLevel: 0, veg: true },
+      { name: "Seasonal Fruit", category: "Desserts", price: 80, description: "With chili–salt sugar", spicyLevel: 0, veg: true },
+
+      // Drinks
+      { name: "Butterfly Pea Limeade", category: "Drinks", price: 65, description: "Refreshing blue pea + lime", spicyLevel: 0, veg: true },
+      { name: "Bael Fruit Iced Tea", category: "Drinks", price: 55, description: "Nam Matoom", spicyLevel: 0, veg: true },
+      { name: "Lemongrass–Pandan Cooler", category: "Drinks", price: 55, description: "", spicyLevel: 0, veg: true },
+      { name: "Thai Iced Tea", category: "Drinks", price: 55, description: "", spicyLevel: 0, veg: true },
+      { name: "Thai Iced Coffee", category: "Drinks", price: 60, description: "", spicyLevel: 0, veg: true }
+    ];
+
+    const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    for (const m of MENU) {
+      const id = slug(`${m.category}-${m.name}`);
+      const docRef = doc(db, "menu", id);
+      await setDoc(docRef, {
+        name: m.name,
+        category: m.category,
+        price: m.price,
+        description: m.description || "",
+        spicyLevel: m.spicyLevel || 0,
+        veg: !!m.veg,
+        active: true
+      }, { merge: true });
+      log(`Upserted: ${id}`);
+    }
+    log("Done. You can close this tab and open index.html.");
+  </script>
+</body>
+</html>
