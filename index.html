@@ -1,149 +1,74 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Northern Thai POS</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tonkla Lanna Kitchen POS</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="<https://fonts.googleapis.com>">
+  <link rel="preconnect" href="<https://fonts.gstatic.com>" crossorigin>
+  <link href="<https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap>" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="app-header">
-    <div class="brand">
-      <span class="logo">🍲</span>
-      <h1>Northern Thai POS</h1>
-    </div>
-    <div class="session">
-      <span id="authStatus">Connecting…</span>
-      <button id="signOutBtn" class="ghost" hidden>Sign out</button>
-    </div>
-  </header>
-
-  <nav class="tabs">
-    <button class="tab active" data-tab="pos">POS</button>
-    <button class="tab" data-tab="orders">Orders</button>
-    <button class="tab" data-tab="settings">Settings</button>
-  </nav>
-
-  <main>
-    <!-- POS TAB -->
-    <section id="pos" class="tab-panel active">
-      <div class="pos-layout">
-        <aside class="left">
-          <div class="filters">
-            <input id="searchInput" type="search" placeholder="Search menu…" />
-            <div id="categoryChips" class="chips"></div>
-          </div>
-          <div id="menuList" class="menu-grid">
-            <!-- Menu items render here -->
-          </div>
-        </aside>
-
-        <aside class="right">
-          <div class="cart">
-            <div class="cart-header">
-              <h2>Cart</h2>
-              <button id="clearCartBtn" class="ghost sm">Clear</button>
-            </div>
-            <div id="cartItems" class="cart-items"></div>
-
-            <div class="cart-summary">
-              <div class="row"><span>Subtotal</span><span id="subtotal">THB 0.00</span></div>
-              <div class="row"><span>VAT (7%)</span><span id="tax">THB 0.00</span></div>
-              <div class="row"><span>Service (0%)</span><span id="service">THB 0.00</span></div>
-              <div class="row total"><span>Total</span><span id="total">THB 0.00</span></div>
-            </div>
-
-            <div class="checkout">
-              <div class="row">
-                <label>Order Type</label>
-                <select id="orderType">
-                  <option value="dine-in">Dine-in</option>
-                  <option value="takeaway">Takeaway</option>
-                </select>
-              </div>
-              <div class="row">
-                <input id="tableNumber" type="text" placeholder="Table (optional)" />
-              </div>
-              <div class="row">
-                <label>Payment</label>
-                <select id="paymentMethod">
-                  <option value="cash">Cash</option>
-                  <option value="card">Card</option>
-                  <option value="qr">QR</option>
-                </select>
-              </div>
-              <button id="chargeBtn" class="primary" disabled>Charge</button>
-            </div>
-          </div>
-        </aside>
+  <div class="pos-container" role="application" aria-label="Tonkla Lanna Kitchen POS">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Categories">
+      <h2>Tonkla Kitchen 🌶️</h2>
+      <ul id="category-list" class="category-list" role="list"></ul>
+      <div class="sidebar-footer">
+        <p>User: Supanut Chailungka</p>
+        <p id="current-time" aria-live="polite"></p>
       </div>
-    </section>
+    </aside>
 
-    <!-- ORDERS TAB -->
-    <section id="orders" class="tab-panel">
-      <div class="orders-toolbar">
-        <select id="orderStatusFilter">
-          <option value="open">Open</option>
-          <option value="paid">Paid</option>
-          <option value="void">Void</option>
-          <option value="all">All</option>
-        </select>
-        <button id="refreshOrdersBtn" class="ghost sm">Refresh</button>
-      </div>
-      <div id="ordersList" class="orders-list"></div>
-    </section>
+    <!-- Menu -->
+    <main class="menu-grid" aria-label="Menu">
+      <header class="menu-header">
+        <h1 id="current-category-title">Small Plates</h1>
+        <p id="current-category-note" class="menu-category-note"></p>
+      </header>
+      <div id="menu-items" class="menu-items-container" role="list"></div>
+    </main>
 
-    <!-- SETTINGS TAB -->
-    <section id="settings" class="tab-panel">
-      <h2>Settings</h2>
-      <div class="settings-grid">
-        <div class="card">
-          <h3>Taxes & Service</h3>
-          <label>VAT % <input id="vatPct" type="number" min="0" step="0.1" /></label>
-          <label>Service % <input id="svcPct" type="number" min="0" step="0.1" /></label>
-          <button id="saveSettingsBtn" class="primary sm">Save</button>
-        </div>
-        <div class="card">
-          <h3>Data</h3>
-          <p>To load the sample Northern Thai menu, open seed.html once after adding your Firebase config.</p>
-          <button id="reloadMenuBtn" class="ghost sm">Reload menu</button>
+    <!-- Order Summary -->
+    <section class="order-summary" aria-label="Order Summary">
+      <h2>Current Order</h2>
+      <div id="cart-items" class="cart-items-list">
+        <div class="cart-empty-message" id="cart-empty">
+          <p>Your cart is empty.</p>
+          <span>Select items from the menu to get started.</span>
         </div>
       </div>
-    </section>
-  </main>
 
-  <template id="menuItemTpl">
-    <div class="menu-card">
-      <div class="menu-info">
-        <div class="title-row">
-          <h4 class="name"></h4>
-          <span class="price"></span>
+      <div class="order-total">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="subtotal-amount">$0.00</span>
         </div>
-        <p class="desc"></p>
-        <div class="tags"></div>
+        <div class="total-row">
+          <span>Tax (7%)</span>
+          <span id="tax-amount">$0.00</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Total</span>
+          <span id="total-amount">$0.00</span>
+        </div>
       </div>
-      <div class="menu-actions">
-        <button class="addBtn">Add</button>
-      </div>
-    </div>
-  </template>
 
-  <template id="cartItemTpl">
-    <div class="cart-row">
-      <div class="info">
-        <div class="name"></div>
-        <div class="price"></div>
+      <div class="order-actions">
+        <button id="clear-order-btn" class="btn btn-secondary" type="button">Clear Order</button>
+        <button id="pay-now-btn" class="btn btn-primary" type="button" disabled>Pay Now</button>
       </div>
-      <div class="qty">
-        <button class="qtyBtn" data-delta="-1">−</button>
-        <span class="count"></span>
-        <button class="qtyBtn" data-delta="1">+</button>
-      </div>
-      <div class="line-total"></div>
-      <button class="removeBtn">✕</button>
-    </div>
-  </template>
+    </section>
+  </div>
 
-  <script type="module" src="app.js"></script>
+  <!-- Load menu data before the app script -->
+  <script src="menu-data.js"></script>
+  <!-- App JS -->
+  <script src="script.js"></script>
 </body>
 </html>
