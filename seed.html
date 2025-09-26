@@ -13,14 +13,15 @@
     import { getFirestore, doc, setDoc } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js>";
     import { getAuth, signInAnonymously } from "<https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js>";
 
-    // 1) Paste your config here
+    // Your Firebase config (pasted)
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyDJNl8F10gFc7GaL1jvumTu9sr3Snds22w",
+      authDomain: "pos---northern-thai-restaurant.firebaseapp.com",
+      projectId: "pos---northern-thai-restaurant",
+      storageBucket: "pos---northern-thai-restaurant.firebasestorage.app",
+      messagingSenderId: "330584001881",
+      appId: "1:330584001881:web:a8e80269de0b8b24105048",
+      measurementId: "G-4QZJ6GEFL4"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -97,8 +98,7 @@
     const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     for (const m of MENU) {
       const id = slug(`${m.category}-${m.name}`);
-      const docRef = doc(db, "menu", id);
-      await setDoc(docRef, {
+      await setDoc(doc(db, "menu", id), {
         name: m.name,
         category: m.category,
         price: m.price,
