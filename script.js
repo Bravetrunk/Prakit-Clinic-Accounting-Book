@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check PWA status
     checkPWAStatus();
+
+    // Initialize charts
+    initializeCharts();
 });
 
 // Setup event listeners
@@ -59,9 +62,15 @@ function setupEventListeners() {
     if (dateFilter) {
         dateFilter.addEventListener('change', (e) => {
             if (e.target.value === 'custom') {
-                document.getElementById('customDateRange').style.display = 'flex';
+                const customRange = document.getElementById('customDateRange');
+                if (customRange) {
+                    customRange.style.display = 'flex';
+                }
             } else {
-                document.getElementById('customDateRange').style.display = 'none';
+                const customRange = document.getElementById('customDateRange');
+                if (customRange) {
+                    customRange.style.display = 'none';
+                }
                 applyFilters();
             }
         });
@@ -72,6 +81,84 @@ function setupEventListeners() {
     if (form) {
         form.addEventListener('submit', handleFormSubmit);
     }
+
+    // Quick add form
+    const quickForm = document.getElementById('quickAddForm');
+    if (quickForm) {
+        quickForm.addEventListener('submit', handleQuickAddSubmit);
+    }
+
+    // Tags input
+    const tagsInput = document.getElementById('tags');
+    if (tagsInput) {
+        tagsInput.addEventListener('focus', showTagSuggestions);
+        tagsInput.addEventListener('input', showTagSuggestions);
+    }
+
+    // Close modal on outside click
+    window.addEventListener('click', function(event) {
+        const quickModal = document.getElementById('quickAddModal');
+        const exportModal = document.getElementById('exportModal');
+
+        if (event.target === quickModal) {
+            closeQuickAdd();
+        }
+        if (event.target === exportModal) {
+            closeExportMenu();
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+}
+
+// Handle keyboard shortcuts
+function handleKeyboardShortcuts(e) {
+    // Alt + N: Quick Add
+    if (e.altKey && e.key === 'n') {
+        e.preventDefault();
+        openQuickAdd();
+    }
+
+    // Alt + D: Dashboard
+    if (e.altKey && e.key === 'd') {
+        e.preventDefault();
+        const dashboardTab = document.querySelector('.tab[onclick*="dashboard"]');
+        if (dashboardTab) dashboardTab.click();
+    }
+
+    // Alt + A: Analytics
+    if (e.altKey && e.key === 'a') {
+        e.preventDefault();
+        const analyticsTab = document.querySelector('.tab[onclick*="analytics"]');
+        if (analyticsTab) analyticsTab.click();
+    }
+
+    // Alt + S: Settings
+    if (e.altKey && e.key === 's') {
+        e.preventDefault();
+        const settingsTab = document.querySelector('.tab[onclick*="settings"]');
+        if (settingsTab) settingsTab.click();
+    }
+
+    // Alt + T: Toggle Theme
+    if (e.altKey && e.key === 't') {
+        e.preventDefault();
+        toggleTheme();
+    }
+
+    // Ctrl + F: Focus search (prevent default browser search)
+    if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.focus();
+    }
+
+    // Escape: Close modals
+    if (e.key === 'Escape') {
+        closeQuickAdd();
+        closeExportMenu();
+    }
 }
 
 // Tab switching
@@ -79,8 +166,12 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
 
-    event.target.classList.add('active');
-    document.getElementById(tabName).classList.add('active');
+    // Find and activate the clicked tab
+    const clickedTab = event ? event.target : document.querySelector(`.tab[onclick*="${tabName}"]`);
+    if (clickedTab) clickedTab.classList.add('active');
+
+    const section = document.getElementById(tabName);
+    if (section) section.classList.add('active');
 
     if (tabName === 'dashboard') {
         applyFilters();
@@ -120,7 +211,10 @@ async function loadData() {
             // Apply default filter from settings
             const settings = JSON.parse(localStorage.getItem('dashboardSettings') || '{}');
             if (settings.defaultView && settings.defaultView !== 'all') {
-                document.getElementById('dateFilter').value = settings.defaultView;
+                const dateFilter = document.getElementById('dateFilter');
+                if (dateFilter) {
+                    dateFilter.value = settings.defaultView;
+                }
             }
 
             applyFilters();
@@ -132,14 +226,17 @@ async function loadData() {
     } catch (error) {
         console.error('Error loading data:', error);
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="no-data">Error: ' + error.message + '</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="no-data">Error loading data: ' + error.message + '</td></tr>';
         }
     }
 }
 
 // Apply date filters
 function applyFilters() {
-    const filterType = document.getElementById('dateFilter').value;
+    const dateFilter = document.getElementById('dateFilter');
+    if (!dateFilter) return;
+
+    const filterType = dateFilter.value;
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
@@ -165,15 +262,20 @@ function applyFilters() {
                 return rowDate.getFullYear() === now.getFullYear();
 
             case 'custom':
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
+                const startDateInput = document.getElementById('startDate');
+                const endDateInput = document.getElementById('endDate');
 
-                if (startDate && endDate) {
-                    const start = new Date(startDate);
-                    const end = new Date(endDate);
-                    start.setHours(0, 0, 0, 0);
-                    end.setHours(23, 59, 59, 999);
-                    return rowDate >= start && rowDate <= end;
+                if (startDateInput && endDateInput) {
+                    const startDate = startDateInput.value;
+                    const endDate = endDateInput.value;
+
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return rowDate >= start && rowDate <= end;
+                    }
                 }
                 return true;
 
@@ -220,7 +322,7 @@ function displayData(data) {
     tableBody.innerHTML = sortedData.map((row, index) => {
         const isNegative = row.amount < 0;
         const tags = row.tags ? row.tags.split(',').map(t =>
-            `<span class="transaction-tag">${t.trim()}</span>`
+            `<span class="transaction-tag">${escapeHtml(t.trim())}</span>`
         ).join('') : '-';
 
         return `
@@ -238,6 +340,7 @@ function displayData(data) {
 
 // Escape HTML
 function escapeHtml(text) {
+    if (!text) return '';
     const map = {
         '&': '&amp;',
         '<': '&lt;',
@@ -256,6 +359,18 @@ function sortTable(column) {
         sortColumn = column;
         sortDirection = 'desc';
     }
+
+    // Update sort icons
+    document.querySelectorAll('.sort-icon').forEach(icon => {
+        icon.textContent = '⬍';
+    });
+
+    const currentHeader = event.target;
+    const icon = currentHeader.querySelector('.sort-icon');
+    if (icon) {
+        icon.textContent = sortDirection === 'asc' ? '⬆' : '⬇';
+    }
+
     displayData(filteredData);
 }
 
@@ -266,19 +381,27 @@ function updateStats(data) {
     const totalExpenses = Math.abs(data.filter(r => r.amount < 0).reduce((sum, r) => sum + r.amount, 0));
     const netBalance = totalIncome - totalExpenses;
 
-    document.getElementById('totalEntries').textContent = totalEntries.toLocaleString();
-    document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
-    document.getElementById('totalExpenses').textContent = formatCurrency(totalExpenses);
-
+    const totalEntriesEl = document.getElementById('totalEntries');
+    const totalIncomeEl = document.getElementById('totalIncome');
+    const totalExpensesEl = document.getElementById('totalExpenses');
     const netBalanceEl = document.getElementById('netBalance');
-    netBalanceEl.textContent = formatCurrency(Math.abs(netBalance));
 
-    // Change color based on positive/negative
-    const balanceCard = netBalanceEl.closest('.stat-card');
-    if (netBalance >= 0) {
-        balanceCard.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-    } else {
-        balanceCard.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+    if (totalEntriesEl) totalEntriesEl.textContent = totalEntries.toLocaleString();
+    if (totalIncomeEl) totalIncomeEl.textContent = formatCurrency(totalIncome);
+    if (totalExpensesEl) totalExpensesEl.textContent = formatCurrency(totalExpenses);
+
+    if (netBalanceEl) {
+        netBalanceEl.textContent = formatCurrency(Math.abs(netBalance));
+
+        // Change color based on positive/negative
+        const balanceCard = netBalanceEl.closest('.stat-card');
+        if (balanceCard) {
+            if (netBalance >= 0) {
+                balanceCard.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            } else {
+                balanceCard.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+            }
+        }
     }
 }
 
@@ -305,11 +428,15 @@ async function handleFormSubmit(e) {
     const submitBtn = document.getElementById('submitBtn');
     const messageDiv = document.getElementById('message');
 
+    if (!submitBtn || !messageDiv) return;
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = 'Submitting<span class="loader"></span>';
     messageDiv.innerHTML = '';
 
-    const transactionType = document.querySelector('input[name="transactionType"]:checked').value;
+    const transactionTypeInput = document.querySelector('input[name="transactionType"]:checked');
+    const transactionType = transactionTypeInput ? transactionTypeInput.value : 'expense';
+
     let amount = parseFloat(document.getElementById('amount').value);
 
     // Make expenses negative
@@ -341,6 +468,8 @@ async function handleFormSubmit(e) {
         document.getElementById('accountingForm').reset();
         document.getElementById('date').valueAsDate = new Date();
 
+        showNotification('Transaction added successfully!', 'success');
+
         // Reload data after delay
         setTimeout(() => {
             messageDiv.innerHTML = '';
@@ -353,6 +482,8 @@ async function handleFormSubmit(e) {
         document.getElementById('accountingForm').reset();
         document.getElementById('date').valueAsDate = new Date();
 
+        showNotification('Transaction submitted!', 'success');
+
         setTimeout(() => {
             messageDiv.innerHTML = '';
             loadData();
@@ -360,6 +491,52 @@ async function handleFormSubmit(e) {
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Submit Entry';
+    }
+}
+
+// Handle quick add form submission
+async function handleQuickAddSubmit(e) {
+    e.preventDefault();
+
+    const quickAmountInput = document.getElementById('quickAmount');
+    const quickDescInput = document.getElementById('quickDescription');
+    const quickCatInput = document.getElementById('quickCategory');
+
+    if (!quickAmountInput || !quickDescInput || !quickCatInput) return;
+
+    const formData = {
+        date: new Date().toISOString().split('T')[0],
+        transaction: quickDescInput.value,
+        amount: -Math.abs(parseFloat(quickAmountInput.value)), // Negative for expense
+        transactionType: 'expense',
+        categories: quickCatInput.value,
+        tags: '',
+        fileImage: ''
+    };
+
+    try {
+        await fetch(CONFIG.WEBAPP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        showNotification('Transaction added successfully!', 'success');
+        closeQuickAdd();
+
+        // Reload data after delay
+        setTimeout(() => {
+            loadData();
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Transaction submitted!', 'success');
+        closeQuickAdd();
+        setTimeout(() => loadData(), 1500);
     }
 }
 
@@ -380,4 +557,314 @@ function checkPWAStatus() {
         status.textContent = 'Use Chrome/Edge to install this app.';
         status.style.color = 'var(--text-secondary)';
     }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background: ${type === 'success' ? 'var(--success-bg)' : type === 'error' ? 'var(--error-bg)' : 'rgba(59, 130, 246, 0.1)'};
+        color: ${type === 'success' ? 'var(--success-text)' : type === 'error' ? 'var(--error-text)' : '#2563eb'};
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        z-index: 9999;
+        animation: slideDown 0.3s ease-out;
+        font-weight: 600;
+        max-width: 400px;
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.3s ease-out';
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Quick Add Modal functions
+function openQuickAdd() {
+    const modal = document.getElementById('quickAddModal');
+    if (modal) {
+        modal.classList.add('active');
+        const quickAmount = document.getElementById('quickAmount');
+        if (quickAmount) quickAmount.focus();
+    }
+}
+
+function closeQuickAdd() {
+    const modal = document.getElementById('quickAddModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    const quickForm = document.getElementById('quickAddForm');
+    if (quickForm) {
+        quickForm.reset();
+    }
+}
+
+// Export Menu functions
+function showExportMenu() {
+    const modal = document.getElementById('exportModal');
+    if (modal) {
+        modal.classList.add('active');
+    }
+}
+
+function closeExportMenu() {
+    const modal = document.getElementById('exportModal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+// Tag suggestions
+function showTagSuggestions() {
+    const input = document.getElementById('tags');
+    const container = document.getElementById('tagSuggestions');
+
+    if (!input || !container) return;
+
+    const currentTags = input.value.split(',').map(t => t.trim());
+    const suggestions = CONFIG.TAG_SUGGESTIONS.filter(tag =>
+        !currentTags.includes(tag)
+    );
+
+    container.innerHTML = suggestions.slice(0, 5).map(tag =>
+        `<span class="tag-suggestion" onclick="addTag('${tag}')">${tag}</span>`
+    ).join('');
+}
+
+function addTag(tag) {
+    const input = document.getElementById('tags');
+    if (!input) return;
+
+    const currentTags = input.value ? input.value.split(',').map(t => t.trim()) : [];
+    if (!currentTags.includes(tag)) {
+        currentTags.push(tag);
+        input.value = currentTags.join(', ');
+    }
+}
+
+// Currency functions
+function getCurrentCurrencySymbol() {
+    const currencyFilter = document.getElementById('currencyFilter');
+    const currency = currencyFilter ? currencyFilter.value : 'THB';
+    return CONFIG.CURRENCY_SYMBOLS[currency];
+}
+
+function convertAmount(amount, toCurrency = null) {
+    if (!toCurrency) {
+        const currencyFilter = document.getElementById('currencyFilter');
+        toCurrency = currencyFilter ? currencyFilter.value : 'THB';
+    }
+    const rate = CONFIG.CURRENCY_RATES[toCurrency];
+    return amount * rate;
+}
+
+function formatCurrency(amount, currency = null) {
+    if (!currency) {
+        const currencyFilter = document.getElementById('currencyFilter');
+        currency = currencyFilter ? currencyFilter.value : 'THB';
+    }
+    const symbol = CONFIG.CURRENCY_SYMBOLS[currency];
+    const convertedAmount = convertAmount(amount, currency);
+    return symbol + convertedAmount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function updateCurrency() {
+    const currencyFilter = document.getElementById('currencyFilter');
+    if (currencyFilter) {
+        const currency = currencyFilter.value;
+        localStorage.setItem('selectedCurrency', currency);
+    }
+
+    // Re-display data with new currency
+    displayData(filteredData);
+    updateStats(filteredData);
+    updateCharts(filteredData);
+}
+
+// Initialize all charts
+function initializeCharts() {
+    updateLineChart([]);
+    updatePieChart([]);
+    updateBarChart([]);
+    updateStackedChart([]);
+}
+
+// Theme functions
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+
+    // Update theme icon
+    const icon = document.querySelector('.theme-icon');
+    if (icon) {
+        icon.textContent = isDark ? '☀️' : '🌙';
+    }
+}
+
+function loadTheme() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        const icon = document.querySelector('.theme-icon');
+        if (icon) icon.textContent = '☀️';
+    }
+}
+
+// Settings functions
+function saveSettings() {
+    const showStats = document.getElementById('showStats');
+    const showCharts = document.getElementById('showCharts');
+    const showTable = document.getElementById('showTable');
+    const defaultView = document.getElementById('defaultView');
+
+    const settings = {
+        showStats: showStats ? showStats.checked : true,
+        showCharts: showCharts ? showCharts.checked : true,
+        showTable: showTable ? showTable.checked : true,
+        defaultView: defaultView ? defaultView.value : 'month'
+    };
+
+    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+    applySettings();
+    showNotification('Settings saved', 'success');
+}
+
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('dashboardSettings') || '{}');
+
+    const showStats = document.getElementById('showStats');
+    const showCharts = document.getElementById('showCharts');
+    const showTable = document.getElementById('showTable');
+    const defaultView = document.getElementById('defaultView');
+
+    if (showStats && settings.showStats !== undefined) {
+        showStats.checked = settings.showStats;
+    }
+    if (showCharts && settings.showCharts !== undefined) {
+        showCharts.checked = settings.showCharts;
+    }
+    if (showTable && settings.showTable !== undefined) {
+        showTable.checked = settings.showTable;
+    }
+    if (defaultView && settings.defaultView) {
+        defaultView.value = settings.defaultView;
+    }
+
+    applySettings();
+}
+
+function applySettings() {
+    const settings = JSON.parse(localStorage.getItem('dashboardSettings') || '{}');
+
+    const statsGrid = document.querySelector('.stats-grid');
+    const chartsGrid = document.querySelector('.charts-grid');
+    const tableContainer = document.querySelector('.table-container');
+
+    if (statsGrid) {
+        statsGrid.style.display = settings.showStats !== false ? 'grid' : 'none';
+    }
+    if (chartsGrid) {
+        chartsGrid.style.display = settings.showCharts !== false ? 'grid' : 'none';
+    }
+    if (tableContainer) {
+        tableContainer.style.display = settings.showTable !== false ? 'block' : 'none';
+    }
+}
+
+// Saved filters functions
+function displaySavedFilters() {
+    const container = document.getElementById('savedFilters');
+    if (!container) return;
+
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+
+    if (Object.keys(savedFilters).length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = Object.entries(savedFilters).map(([name, config]) => `
+        <div class="saved-filter" onclick="applySavedFilter('${escapeHtml(name)}')">
+            ${escapeHtml(name)}
+            <span class="remove" onclick="event.stopPropagation(); removeSavedFilter('${escapeHtml(name)}')">✕</span>
+        </div>
+    `).join('');
+}
+
+function applySavedFilter(name) {
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+    const config = savedFilters[name];
+
+    if (config) {
+        const dateFilter = document.getElementById('dateFilter');
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const searchInput = document.getElementById('searchInput');
+
+        if (dateFilter) dateFilter.value = config.dateFilter;
+        if (startDate) startDate.value = config.startDate;
+        if (endDate) endDate.value = config.endDate;
+        if (searchInput) searchInput.value = config.search;
+
+        if (config.dateFilter === 'custom') {
+            const customRange = document.getElementById('customDateRange');
+            if (customRange) customRange.style.display = 'flex';
+        }
+
+        applyFilters();
+        showNotification(`Applied filter: ${name}`, 'success');
+    }
+}
+
+function removeSavedFilter(name) {
+    const savedFilters = JSON.parse(localStorage.getItem('savedFilters') || '{}');
+    delete savedFilters[name];
+    localStorage.setItem('savedFilters', JSON.stringify(savedFilters));
+    displaySavedFilters();
+    showNotification('Filter removed', 'success');
+}
+
+// Clear cache
+function clearCache() {
+    if (confirm('Clear all cached data? This will not delete your transactions.')) {
+        localStorage.clear();
+        showNotification('Cache cleared successfully', 'success');
+        setTimeout(() => location.reload(), 1000);
+    }
+}
+
+// Clear all data (warning only)
+function confirmClearData() {
+    const confirmation = prompt('Type "DELETE ALL" to confirm deletion of all data:');
+    if (confirmation === 'DELETE ALL') {
+        alert('This action would delete all data from Google Sheets. For safety, this is disabled. Please delete manually from your sheet.');
+    }
+}
+
+// Filter by tag (from tag cloud)
+function filterByTag(tag) {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = tag;
+        const event = new Event('input');
+        searchInput.dispatchEvent(event);
+    }
+
+    // Switch to dashboard
+    const dashboardTab = document.querySelector('.tab[onclick*="dashboard"]');
+    if (dashboardTab) dashboardTab.click();
 }
